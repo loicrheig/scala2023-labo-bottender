@@ -16,10 +16,15 @@ enum Token:
        OU,
        // Products
        PRODUIT,
+       MARQUE,
+       SOLDE,
+       PRIX,
        // Util
        PSEUDO,
        NUM,
        EOL,
        UNKNOWN,
-       BAD
+       BAD,
+       ME,
+       COMBIEN,
 end Token

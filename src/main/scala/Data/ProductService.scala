@@ -18,13 +18,13 @@ class ProductImpl extends ProductService:
           case "Wittekop" => 2.0
           case "PunkIPA" => 3.0
           case "Jackhammer" => 3.0
-          case "Ténébreuse" => 4.0
+          case "Tenebreuse" => 4.0
       case "Croissant" => 2.0
         brand match
           case "Maison" => 2.0
           case "Cailler" => 2.0
   def getDefaultBrand(product: ProductName): BrandName =
     product match
-      case "Bière" => "Boxer"
+      case "Biere" => "Boxer"
       case "Croissant" => "Maison"
 end ProductImpl

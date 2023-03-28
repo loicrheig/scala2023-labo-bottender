@@ -38,6 +38,18 @@ class TokenizerService(spellCheckerSvc: SpellCheckerService):
       case "et"                                   => ET
       case "ou"                                   => OU
       case "svp"                                  => SVP
+      case "Boxer"                                => MARQUE
+      case "Farmer"                               => MARQUE
+      case "Wittekop"                             => MARQUE
+      case "PunkIPA"                              => MARQUE
+      case "Jackhammer"                           => MARQUE
+      case "Tenebreuse"                           => MARQUE
+      case "prix"                                 => PRIX
+      case "solde"                                => SOLDE
+      case "me"                                   => ME
+      case "combien"                              => COMBIEN
+      
+
       case _ if normalizedWord.startsWith("_")    => PSEUDO
       case _ if normalizedWord.forall(_.isDigit)  => NUM
       case _                                      => UNKNOWN
