@@ -24,10 +24,31 @@ trait SpellCheckerService:
   def getClosestWordInDictionary(misspelledWord: String): String
 end SpellCheckerService
 
-class SpellCheckerImpl(val dictionary: Map[String, String]) extends SpellCheckerService:
+class SpellCheckerImpl(val dictionary: Map[String, String]) extends SpellCheckerService: 
   // TODO - Part 1 Step 2
-  def stringDistance(s1: String, s2: String): Int = ???
+  def stringDistance(s1: String, s2: String): Int = {// TODO make efficient
+    def levensthein(s1: String, s2: String): Int = {
+      if (s1.isEmpty) s2.length
+      else if (s2.isEmpty) s1.length
+      else {
+        val cost = if (s1.head == s2.head) 0 else 1
+        val deletion = levensthein(s1.tail, s2) + 1
+        val insertion = levensthein(s1, s2.tail) + 1
+        val substitution = levensthein(s1.tail, s2.tail) + cost
+        List(deletion, insertion, substitution).min
+      }
+    }
+    levensthein(s1, s2)
+  }
 
   // TODO - Part 1 Step 2
-  def getClosestWordInDictionary(misspelledWord: String): String = ???
+  def getClosestWordInDictionary(misspelledWord: String): String = {
+    if (misspelledWord.forall(_.isDigit)) return misspelledWord // if the word is a number
+    if (misspelledWord.startsWith("_")) return misspelledWord // if the word is a pseudonym
+
+    if (dictionary.contains(misspelledWord)) return dictionary(misspelledWord) // if the word is in the dictionary
+    
+    val closestWord = dictionary.keys.minBy(word => stringDistance(word, misspelledWord))
+    dictionary(closestWord)  
+  }
 end SpellCheckerImpl

@@ -10,7 +10,19 @@ trait Tokenized:
     */
   def nextToken(): (String, Token)
 
-class TokenizedImpl(val tokens: Array[(String, Token)]) extends Tokenized:
+class TokenizedImpl(var tokens: Array[(String, Token)]) extends Tokenized:
+  var counter = 0
   // TODO - Part 1 Step 3
-  def nextToken(): (String, Token) = ???
+  def nextToken(): (String, Token) = {
+    //with counter
+    if (counter < tokens.length) {
+      val token = tokens(counter)
+      counter += 1
+      println("counter: " + counter) 
+      token
+    } else {
+      (EOL.toString, EOL)
+    }
+  }
+
 end TokenizedImpl
