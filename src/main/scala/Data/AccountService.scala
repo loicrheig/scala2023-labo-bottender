@@ -34,8 +34,23 @@ trait AccountService:
 
 class AccountImpl extends AccountService:
   // TODO - Part 2 Step 2
-  def getAccountBalance(user: String): Double = ???
-  def addAccount(user: String, balance: Double): Unit = ???
-  def isAccountExisting(user: String): Boolean = ???
-  def purchase(user: String, amount: Double): Double = ???
+  accounts: Map[String, Double]
+
+  def getAccountBalance(user: String): Double =
+    accounts.get(user) match
+      case Some(balance) => balance
+      case None => throw new Exception("Account not found")
+  def addAccount(user: String, balance: Double = 30.0): Unit =
+    if (accounts.contains(user)) throw new Exception("Account already exists")
+    else accounts += (user -> balance)
+  def isAccountExisting(user: String): Boolean =
+    return accounts.contains(user)
+  def purchase(user: String, amount: Double): Double =
+    accounts.get(user) match
+      case Some(balance) =>
+        if (balance < amount) throw new Exception("Not enough money")
+        else
+          accounts += (user -> (balance - amount))
+          return balance - amount
+      case None => throw new Exception("Account not found")
 end AccountImpl
