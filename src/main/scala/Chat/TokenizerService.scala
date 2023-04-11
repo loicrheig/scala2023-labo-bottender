@@ -48,6 +48,14 @@ class TokenizerService(spellCheckerSvc: SpellCheckerService):
       case "solde"                                => SOLDE
       case "me"                                   => ME
       case "combien"                              => COMBIEN
+      case "quel"                                 => QUEL
+      case "le"                                   => LE
+      case "de"                                   => DE
+      case "couter"                               => COUTER
+      case "commander"                            => COMMANDER
+      case "connaitre"                            => CONNAITRE
+      case "mon"                                  => MON
+      case "appeler"                              => APPELER
       
 
       case _ if normalizedWord.startsWith("_")    => PSEUDO

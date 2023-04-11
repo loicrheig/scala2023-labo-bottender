@@ -27,4 +27,12 @@ enum Token:
        BAD,
        ME,
        COMBIEN,
+       QUEL,
+       LE,
+       DE,
+       COUTER,
+       COMMANDER,
+       CONNAITRE,
+       MON,
+       APPELER
 end Token

@@ -32,9 +32,11 @@ object Dictionary:
     "ou" -> "ou",
     "svp" -> "svp",
     "stp" -> "svp",
-    "coute" -> "prix",
-    "coutent" -> "prix",
+    "coûte" -> "couter",
+    "coûtent" -> "couter",
     "prix" -> "prix",
+    "connaître" -> "connaitre",
+    "appelle" -> "appeler"
 
     // TODO - Part 2 Step 1
   )
