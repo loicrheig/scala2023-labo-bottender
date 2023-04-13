@@ -11,10 +11,11 @@ class AnalyzerService(productSvc: ProductService,
     * @return the result of the computation
     */
   // TODO - Part 2 Step 3
-  def computePrice(t: ExprTree): Double = 
+  def computePrice(t: Command): Double = 
     t match
-      case Order(n Num p ProductName) => n * productSvc.getPrice(p)
-      case Order(leftOrder Order And rightOrder Order) => computePrice(leftOrder) + computePrice(rightOrder)
+      case BasicOrder(product) => product.quantity * productSvc.getPrice(product.productName, product.productBrand)
+      case AndOrder(leftCommand, rightCommand) => computePrice(leftCommand) + computePrice(rightCommand)
+      /*case OrOrder(leftCommand, rightCommand) => computePrice(leftCommand) + computePrice(rightCommand) todo*/
     
 
   /**
@@ -30,30 +31,29 @@ class AnalyzerService(productSvc: ProductService,
       case Thirsty => "Eh bien, la chance est de votre côté, car nous offrons les meilleures bières de la région !"
       case Hungry => "Pas de soucis, nous pouvons notamment vous offrir des croissants faits maisons !"
       case Auth(username) => 
-        if accountSvc.isAccountExisting(user) == false{
-          accountSvc.addAccount(user)
+        if (accountSvc.isAccountExisting(username) == false){
+          // todo remove 30.0
+          accountSvc.addAccount(username, 30.0)
         }
-        session.setCurrentUser(user)
+        session.setCurrentUser(username)
+        "Bonjour " + username + " !"
       case OrOrder(leftCommand, rightCommand) =>
         val leftPrice = computePrice(leftCommand)
-        val rightPrice = computePrice(rightCommand)
+        val rightPrice = inner(rightCommand)
 
-        if leftPrice <= rightPrice{
+        if leftPrice <= rightPrice then {
           inner(leftCommand)
         }
         else{
           inner(rightCommand)
         }
       case AndOrder(leftCommand, rightCommand) =>
-        inner(leftCommand) + " et " inner(rightCommand)
+        val leftResult = inner(leftCommand)
+        val rightResult = inner(rightCommand)
+
+        leftResult + " et " rightResult
 
       case BasicOrder(product) =>
-        val brand = ""
-
-        product.productBrand match
-          case Some(s) => brand = s
-          case None => brand = productSvc.getDefaultBrand(product.productName)
-        
         val productPrice = computePrice(t)
         accountSvc.purchase(session.getCurrentUser(), productPrice)
 

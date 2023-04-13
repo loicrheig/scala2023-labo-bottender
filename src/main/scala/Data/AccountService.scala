@@ -40,8 +40,10 @@ class AccountImpl extends AccountService:
     accounts.get(user) match
       case Some(balance) => balance
       case None => throw new Exception("Account not found")
+
   def isAccountExisting(user: String): Boolean =
     return accounts.contains(user)
+    
   def addAccount(user: String, balance: Double = 30.0): Unit =
     if (isAccountExisting(user)) throw new Exception("Account already exists")
     else accounts += (user -> balance)

@@ -4,6 +4,10 @@ package Chat
   * This sealed trait represents a node of the tree.
   */
 sealed trait ExprTree
+sealed trait Command extends ExprTree
+sealed trait BasicCommand extends Command
+
+//todo peut etre tous des ExprTree
 
 /**
   * Declarations of the nodes' types.
@@ -18,10 +22,8 @@ object ExprTree:
 
   case class Product(quantity: Int, productName: String, productBrand: Option[String]) extends ExprTree
   
-  case object Command extends ExprTree
-  case object BasicCommand extends Command
+  case object Command
 
-  case class BasicOrder(product: Product) extends BasicCommand
-  case class BasicPriceAsk(product: Product) extends BasicCommand
-  case class AndOrder(leftCommand: BasicCommand, rightCommand: Command) extends Command
-  case class OrOrder(leftCommand: BasicCommand, rightCommand: Command) extends Command
+  case class BasicOrder(product: Product) extends Command
+  case class AndOrder(leftCommand: BasicOrder, rightCommand: Command) extends Command
+  case class OrOrder(leftCommand: BasicOrder, rightCommand: Command) extends Command
