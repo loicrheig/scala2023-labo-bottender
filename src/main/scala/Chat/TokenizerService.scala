@@ -45,6 +45,8 @@ class TokenizerService(spellCheckerSvc: SpellCheckerService):
       case "punkipa"                              => MARQUE
       case "jackhammer"                           => MARQUE
       case "tenebreuse"                           => MARQUE
+      case "cailler"                              => MARQUE
+      case "maison"                               => MARQUE
       case "prix"                                 => PRIX
       case "solde"                                => SOLDE
       case "me"                                   => ME

@@ -81,8 +81,8 @@ class AnalyzerService(productSvc: ProductService,
         session.getCurrentUser match
           case None => "Vous n'êtes pas connecté !"
           case Some(user) => 
-            val balance = accountSvc.getAccountBalance(user).toString()
             val price = handleOrder(t, session)
+            val balance = accountSvc.getAccountBalance(user).toString()
             val quantity = product.quantity.toString()
             val brand = product.productBrand.getOrElse("Pas de marques")
             val tp = product.productName

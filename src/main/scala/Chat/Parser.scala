@@ -48,10 +48,14 @@ class Parser(tokenized: Tokenized):
     val quantity : Int = eat(NUM).toInt
     val productType = eat(PRODUIT)
     var productBrand : Option[String] = None
-    readToken()
+
     if curToken == MARQUE then
       productBrand = Some(curValue)
       readToken()
+
+    println(quantity + " " + productType + " " + productBrand)
+    println(curToken)
+    
     if curToken == ET then
       val tmp : Chat.ExprTree = commandHandle()
       return AndOrder(BasicOrder(Product(quantity, productType, productBrand)), tmp)
@@ -87,8 +91,10 @@ class Parser(tokenized: Tokenized):
         readToken()
         var result : ExprTree = null
         if curToken == COMMANDER then
+          readToken()
           result = commandHandle()
         else if curToken == CONNAITRE then
+          readToken()
           eat(MON)
           eat(SOLDE)
           result = Solde
