@@ -30,20 +30,6 @@ class Parser(tokenized: Tokenized):
     val expectedTokens = tokens.mkString(" or ")
     throw new UnexpectedTokenException(s"Expected: $expectedTokens, found: $curToken")
 
-
-  /*private def authHandle() =
-    readToken()
-    if curToken == ETRE then
-      readToken()
-      if curToken == ASSOIFFE then
-        readToken()
-        Thirsty
-      else if curToken == AFFAME then
-        readToken()
-        Hungry
-      else expected(ASSOIFFE, AFFAME)
-    else expected(ETRE)*/
-
   private def commandHandle() : ExprTree =
     val quantity : Int = eat(NUM).toInt
     val productType = eat(PRODUIT)
@@ -57,6 +43,7 @@ class Parser(tokenized: Tokenized):
     println(curToken)
     
     if curToken == ET then
+      readToken()
       val tmp : Chat.ExprTree = commandHandle()
       return AndOrder(BasicOrder(Product(quantity, productType, productBrand)), tmp)
     else if curToken == OU then

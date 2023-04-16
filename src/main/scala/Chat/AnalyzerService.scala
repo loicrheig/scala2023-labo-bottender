@@ -72,11 +72,18 @@ class AnalyzerService(productSvc: ProductService,
             val balance = accountSvc.getAccountBalance(user).toString()
             s"Votre solde est de CHF $balance !"
       case OrOrder(leftCommand, rightCommand) =>
-        val price = handleOrder(t, session).toString()
-        s"Le prix le plus bas est de CHF $price !"
+        session.getCurrentUser match
+          case None => "Vous n'êtes pas connecté !"
+          case Some(user) => 
+            val price = handleOrder(t, session).toString()
+            s"Le prix le plus bas est de CHF $price !"
       case AndOrder(leftCommand, rightCommand) =>
-        val price = handleOrder(t, session)
-        s"Le prix total est de CHF $price !"
+        session.getCurrentUser match
+          case None => "Vous n'êtes pas connecté !"
+          case Some(user) => 
+            val price = handleOrder(t, session)
+            val balance = accountSvc.getAccountBalance(user).toString()
+            s"Le prix total est de CHF $price et votre nouveau solde est de $balance !"
       case BasicOrder(product) =>
         session.getCurrentUser match
           case None => "Vous n'êtes pas connecté !"
