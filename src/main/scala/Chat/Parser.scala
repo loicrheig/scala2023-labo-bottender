@@ -90,6 +90,6 @@ class Parser(tokenized: Tokenized):
         else if curToken == CONNAITRE then
           eat(MON)
           eat(SOLDE)
-          // todo
+          return Chat.ExprTree.Solde
       else expected(ETRE, ME, VOULOIR)
     else expected(BONJOUR, JE)

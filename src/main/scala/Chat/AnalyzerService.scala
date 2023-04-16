@@ -11,12 +11,29 @@ class AnalyzerService(productSvc: ProductService,
     * @return the result of the computation
     */
   // TODO - Part 2 Step 3
-  def computePrice(t: Command): Double = 
+  def computePrice(t: ExprTree): Double = 
     t match
       case BasicOrder(product) => product.quantity * productSvc.getPrice(product.productName, product.productBrand)
       case AndOrder(leftCommand, rightCommand) => computePrice(leftCommand) + computePrice(rightCommand)
-      /*case OrOrder(leftCommand, rightCommand) => computePrice(leftCommand) + computePrice(rightCommand) todo*/
-    
+      case OrOrder(leftCommand, rightCommand) => {
+        val leftPrice = computePrice(leftCommand)
+        val rightPrice = computePrice(rightCommand)
+
+        if leftPrice <= rightPrice then {
+          leftPrice
+        }
+        else{
+          rightPrice
+        }
+      }
+      case _ => 0.0
+  
+  def handleOrder(t: ExprTree, session: Session): Double = 
+    val price = computePrice(t)
+    session.getCurrentUser match
+      case None => return 0.0
+      case Some(user) => accountSvc.purchase(user, price)
+    price
 
   /**
     * Return the output text of the current node, in order to write it in console.
@@ -37,26 +54,20 @@ class AnalyzerService(productSvc: ProductService,
         }
         session.setCurrentUser(username)
         "Bonjour " + username + " !"
+      case AskPrice(product) => "Le prix de "  product.quantity.toString() + " " + product.productName + " est de CHF " + computePrice(BasicOrder(product)).toString()
+      case Solde => "Votre solde est de CHF " + accountSvc.getAccountBalance(session.getCurrentUser()).toString()
       case OrOrder(leftCommand, rightCommand) =>
-        val leftPrice = computePrice(leftCommand)
-        val rightPrice = inner(rightCommand)
+        val price = handleOrder(t, session)
 
-        if leftPrice <= rightPrice then {
-          inner(leftCommand)
-        }
-        else{
-          inner(rightCommand)
-        }
+        return "Le prix le plus bas est de CHF " + price.toString() + " !"
       case AndOrder(leftCommand, rightCommand) =>
-        val leftResult = inner(leftCommand)
-        val rightResult = inner(rightCommand)
+        val price = handleOrder(t, session)
 
-        leftResult + " et " rightResult
+        return "Le prix total est de CHF " + price.toString() + " !"
 
       case BasicOrder(product) =>
-        val productPrice = computePrice(t)
-        accountSvc.purchase(session.getCurrentUser(), productPrice)
+        val price = handleOrder(t, session)
 
-        return "Voici donc " + product.quantity.toString() + " " + brand + " ! Cela coûte CHF " + productPrice.toString() + " et votre nouveau solde est de " accountSvc.getAccountBalance(session.getCurrentUser())
+        return "Voici donc " + product.quantity.toString() + " " + product.productBrand.getOrElse("Pas de marques") + " ! Cela coûte CHF " + price.toString() + " et votre nouveau solde est de " accountSvc.getAccountBalance(session.getCurrentUser())
         
 end AnalyzerService
