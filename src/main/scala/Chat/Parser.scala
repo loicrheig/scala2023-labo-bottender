@@ -95,4 +95,28 @@ class Parser(tokenized: Tokenized):
         else expected(COMMANDER, CONNAITRE)
         result
       else expected(ETRE, ME, VOULOIR)
-    else expected(BONJOUR, JE)
+    else if curToken == COMBIEN then
+      readToken()
+      eat(COUTER)
+      val quantity : Int = eat(NUM).toInt
+      val productType = eat(PRODUIT)
+      var productBrand : Option[String] = None
+      readToken()
+      if curToken == MARQUE then
+        productBrand = Some(curValue)
+        readToken()
+      return AskPrice(Product(quantity, productType, productBrand))
+    else if curToken == QUEL then
+      eat(ETRE)
+      eat(LE)
+      eat(PRIX)
+      eat(DE)
+      val quantity : Int = eat(NUM).toInt
+      val productType = eat(PRODUIT)
+      var productBrand : Option[String] = None
+      readToken()
+      if curToken == MARQUE then
+        productBrand = Some(curValue)
+        readToken()
+      return AskPrice(Product(quantity, productType, productBrand))
+    else expected(BONJOUR, JE, COMBIEN, QUEL)

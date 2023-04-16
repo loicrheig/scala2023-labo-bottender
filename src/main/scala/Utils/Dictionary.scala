@@ -36,7 +36,15 @@ object Dictionary:
     "coûtent" -> "couter",
     "prix" -> "prix",
     "connaître" -> "connaitre",
-    "appelle" -> "appeler"
+    "appelle" -> "appeler",
+    "combien" -> "combien",
+    "solde" -> "solde",
+    "quel" -> "quel",
+    "le" -> "le",
+    "de" -> "de",
+    "commander" -> "commander",
+    "mon" -> "mon"
+
 
     // TODO - Part 2 Step 1
   )
