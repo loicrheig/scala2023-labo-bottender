@@ -13,17 +13,17 @@ class ProductImpl extends ProductService:
     product match
       case "biere" => 
         brand match
-          case "Boxer" => 1.0
-          case "Farmer" => 1.0
-          case "Wittekop" => 2.0
-          case "PunkIPA" => 3.0
-          case "Jackhammer" => 3.0
-          case "Tenebreuse" => 4.0
+          case "boxer" => 1.0
+          case "farmer" => 1.0
+          case "wittekop" => 2.0
+          case "punkIPA" => 3.0
+          case "jackhammer" => 3.0
+          case "tenebreuse" => 4.0
           case "" => getPrice(product, getDefaultBrand(product))
       case "croissant" =>
         brand match
-          case "Maison" => 2.0
-          case "Cailler" => 2.0
+          case "maison" => 2.0
+          case "cailler" => 2.0
           case "" => getPrice(product, getDefaultBrand(product))
   def getDefaultBrand(product: ProductName): BrandName =
     product match

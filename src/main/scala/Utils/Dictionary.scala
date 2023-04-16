@@ -43,7 +43,15 @@ object Dictionary:
     "le" -> "le",
     "de" -> "de",
     "commander" -> "commander",
-    "mon" -> "mon"
+    "mon" -> "mon",
+    "boxer" -> "boxer",
+    "farmer" -> "farmer",
+    "wittekop" -> "wittekop",
+    "jackhammer" -> "jackhammer",
+    "tenebreuse" -> "tenebreuse",
+    "punkipa" -> "punkipa",
+    "maison" -> "maison",
+    "cailler" -> "cailler",
 
 
     // TODO - Part 2 Step 1

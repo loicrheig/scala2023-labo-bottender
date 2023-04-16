@@ -15,7 +15,9 @@ class AnalyzerService(productSvc: ProductService,
     t match
       case BasicOrder(product) =>
         val brand = product.productBrand.getOrElse("")
-
+        product.quantity * productSvc.getPrice(product.productName, brand)
+      case AskPrice(product) => 
+        val brand = product.productBrand.getOrElse("")
         product.quantity * productSvc.getPrice(product.productName, brand)
       case AndOrder(leftCommand, rightCommand) => computePrice(leftCommand) + computePrice(rightCommand)
       case OrOrder(leftCommand, rightCommand) => {
@@ -60,8 +62,9 @@ class AnalyzerService(productSvc: ProductService,
       case AskPrice(product) => 
         val quantity = product.quantity.toString()
         val productName = product.productName
-        val price = computePrice(BasicOrder(product)).toString()
-        s"Le prix de $quantity $productName est de CHF $price !"
+        val price = computePrice(t).toString()
+        val brand = product.productBrand.getOrElse("Pas de marques")
+        s"Le prix de $quantity $productName $brand est de CHF $price !"
       case Solde => 
         session.getCurrentUser match
           case None => "Vous n'êtes pas connecté !"

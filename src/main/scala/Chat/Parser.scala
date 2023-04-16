@@ -101,7 +101,6 @@ class Parser(tokenized: Tokenized):
       val quantity : Int = eat(NUM).toInt
       val productType = eat(PRODUIT)
       var productBrand : Option[String] = None
-      readToken()
       if curToken == MARQUE then
         productBrand = Some(curValue)
         readToken()

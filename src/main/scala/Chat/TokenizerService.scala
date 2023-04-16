@@ -26,6 +26,7 @@ class TokenizerService(spellCheckerSvc: SpellCheckerService):
   }
 
   private def getToken(normalizedWord : String) : Token ={
+    println(normalizedWord)
     normalizedWord match {
       case "bonjour"                              => BONJOUR
       case "je"                                   => JE
@@ -38,12 +39,12 @@ class TokenizerService(spellCheckerSvc: SpellCheckerService):
       case "et"                                   => ET
       case "ou"                                   => OU
       case "svp"                                  => SVP
-      case "Boxer"                                => MARQUE
-      case "Farmer"                               => MARQUE
-      case "Wittekop"                             => MARQUE
-      case "PunkIPA"                              => MARQUE
-      case "Jackhammer"                           => MARQUE
-      case "Tenebreuse"                           => MARQUE
+      case "boxer"                                => MARQUE
+      case "farmer"                               => MARQUE
+      case "wittekop"                             => MARQUE
+      case "punkipa"                              => MARQUE
+      case "jackhammer"                           => MARQUE
+      case "tenebreuse"                           => MARQUE
       case "prix"                                 => PRIX
       case "solde"                                => SOLDE
       case "me"                                   => ME
