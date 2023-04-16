@@ -24,8 +24,8 @@ object ExprTree:
   case class AskPrice(product: Product) extends ExprTree
 
   case class BasicOrder(product: Product) extends ExprTree
-  case class AndOrder(leftCommand: BasicOrder, rightCommand: Command) extends ExprTree
-  case class OrOrder(leftCommand: BasicOrder, rightCommand: Command) extends ExprTree
+  case class AndOrder(leftCommand: BasicOrder, rightCommand: ExprTree) extends ExprTree
+  case class OrOrder(leftCommand: BasicOrder, rightCommand: ExprTree) extends ExprTree
 
   /*
   case object Command extends ExprTree

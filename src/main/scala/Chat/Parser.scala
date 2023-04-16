@@ -53,7 +53,7 @@ class Parser(tokenized: Tokenized):
       productBrand = Some(curValue)
       readToken()
     if curToken == ET then
-      val tmp = commandHandle()
+      val tmp : Chat.ExprTree = commandHandle()
       return AndOrder(BasicOrder(Product(quantity, productType, productBrand)), tmp)
     else if curToken == OU then
       val tmp = commandHandle()
@@ -85,11 +85,14 @@ class Parser(tokenized: Tokenized):
         return Auth(curValue)
       else if curToken == VOULOIR then
         readToken()
+        var result : ExprTree = null
         if curToken == COMMANDER then
-          return commandHandle()
+          result = commandHandle()
         else if curToken == CONNAITRE then
           eat(MON)
           eat(SOLDE)
-          return Chat.ExprTree.Solde
+          result = Solde
+        else expected(COMMANDER, CONNAITRE)
+        result
       else expected(ETRE, ME, VOULOIR)
     else expected(BONJOUR, JE)

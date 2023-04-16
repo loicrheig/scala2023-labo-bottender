@@ -13,7 +13,10 @@ class AnalyzerService(productSvc: ProductService,
   // TODO - Part 2 Step 3
   def computePrice(t: ExprTree): Double = 
     t match
-      case BasicOrder(product) => product.quantity * productSvc.getPrice(product.productName, product.productBrand)
+      case BasicOrder(product) =>
+        val brand = product.productBrand.getOrElse("")
+
+        product.quantity * productSvc.getPrice(product.productName, brand)
       case AndOrder(leftCommand, rightCommand) => computePrice(leftCommand) + computePrice(rightCommand)
       case OrOrder(leftCommand, rightCommand) => {
         val leftPrice = computePrice(leftCommand)
@@ -54,20 +57,32 @@ class AnalyzerService(productSvc: ProductService,
         }
         session.setCurrentUser(username)
         "Bonjour " + username + " !"
-      case AskPrice(product) => "Le prix de "  product.quantity.toString() + " " + product.productName + " est de CHF " + computePrice(BasicOrder(product)).toString()
-      case Solde => "Votre solde est de CHF " + accountSvc.getAccountBalance(session.getCurrentUser()).toString()
+      case AskPrice(product) => 
+        val quantity = product.quantity.toString()
+        val productName = product.productName
+        val price = computePrice(BasicOrder(product)).toString()
+        s"Le prix de $quantity $productName est de CHF $price !"
+      case Solde => 
+        session.getCurrentUser match
+          case None => "Vous n'êtes pas connecté !"
+          case Some(user) => 
+            val balance = accountSvc.getAccountBalance(user).toString()
+            s"Votre solde est de CHF $balance !"
       case OrOrder(leftCommand, rightCommand) =>
-        val price = handleOrder(t, session)
-
-        return "Le prix le plus bas est de CHF " + price.toString() + " !"
+        val price = handleOrder(t, session).toString()
+        s"Le prix le plus bas est de CHF $price !"
       case AndOrder(leftCommand, rightCommand) =>
         val price = handleOrder(t, session)
-
-        return "Le prix total est de CHF " + price.toString() + " !"
-
+        s"Le prix total est de CHF $price !"
       case BasicOrder(product) =>
-        val price = handleOrder(t, session)
-
-        return "Voici donc " + product.quantity.toString() + " " + product.productBrand.getOrElse("Pas de marques") + " ! Cela coûte CHF " + price.toString() + " et votre nouveau solde est de " accountSvc.getAccountBalance(session.getCurrentUser())
+        session.getCurrentUser match
+          case None => "Vous n'êtes pas connecté !"
+          case Some(user) => 
+            val balance = accountSvc.getAccountBalance(user).toString()
+            val price = handleOrder(t, session)
+            val quantity = product.quantity.toString()
+            val brand = product.productBrand.getOrElse("Pas de marques")
+            val tp = product.productName
+            s"Voici donc $quantity $tp $brand ! Cela coûte CHF $price et votre nouveau solde est de $balance !"
         
 end AnalyzerService

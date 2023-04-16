@@ -18,7 +18,6 @@ class TokenizedImpl(var tokens: Array[(String, Token)]) extends Tokenized:
     if (counter < tokens.length) {
       val token = tokens(counter)
       counter += 1
-      println("counter: " + counter) 
       token
     } else {
       (EOL.toString, EOL)

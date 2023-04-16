@@ -34,8 +34,8 @@ trait AccountService:
 
 class AccountImpl extends AccountService:
   // TODO - Part 2 Step 2
-  accounts: Map[String, Double]
-
+  val accounts: mutable.Map[String, Double] = mutable.Map()
+  
   def getAccountBalance(user: String): Double =
     accounts.get(user) match
       case Some(balance) => balance
@@ -46,14 +46,13 @@ class AccountImpl extends AccountService:
     
   def addAccount(user: String, balance: Double = 30.0): Unit =
     if (isAccountExisting(user)) throw new Exception("Account already exists")
-    else accounts += (user -> balance)
+    else accounts.put(user, balance)
   
   def purchase(user: String, amount: Double): Double =
     accounts.get(user) match
       case Some(balance) =>
         if (balance < amount) throw new Exception("Not enough money")
-        else
-          accounts += (user -> (balance - amount))
+        else accounts.put(user, balance - amount)
           return balance - amount
       case None => throw new Exception("Account not found")
 end AccountImpl
