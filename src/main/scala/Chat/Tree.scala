@@ -21,11 +21,10 @@ object ExprTree:
   case object Solde extends ExprTree
   case class Auth(username: String) extends ExprTree
   case class Product(quantity: Int, productName: String, productBrand: Option[String])
-  case class AskPrice(product: Product) extends ExprTree
 
-  case class BasicOrder(product: Product) extends ExprTree
-  case class AndOrder(leftCommand: BasicOrder, rightCommand: ExprTree) extends ExprTree
-  case class OrOrder(leftCommand: BasicOrder, rightCommand: ExprTree) extends ExprTree
+  case class BasicOrder(product: Product, isRealOrder: Boolean) extends ExprTree
+  case class AndOrder(leftCommand: ExprTree, rightCommand: BasicOrder, isRealOrder: Boolean) extends ExprTree
+  case class OrOrder(leftCommand: ExprTree, rightCommand: BasicOrder, isRealOrder: Boolean) extends ExprTree
 
   /*
   case object Command extends ExprTree

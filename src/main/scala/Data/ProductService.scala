@@ -16,7 +16,7 @@ class ProductImpl extends ProductService:
           case "boxer" => 1.0
           case "farmer" => 1.0
           case "wittekop" => 2.0
-          case "punkIPA" => 3.0
+          case "punkipa" => 3.0
           case "jackhammer" => 3.0
           case "tenebreuse" => 4.0
           case "" => getPrice(product, getDefaultBrand(product))

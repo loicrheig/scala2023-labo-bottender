@@ -1,5 +1,7 @@
 package Chat
 
+import org.scalactic.Bool
+
 class UnexpectedTokenException(msg: String) extends Exception(msg){}
 
 class Parser(tokenized: Tokenized):
@@ -30,7 +32,7 @@ class Parser(tokenized: Tokenized):
     val expectedTokens = tokens.mkString(" or ")
     throw new UnexpectedTokenException(s"Expected: $expectedTokens, found: $curToken")
 
-  private def commandHandle() : ExprTree =
+  private def commandHandle(isReal: Boolean) : ExprTree =
     val quantity : Int = eat(NUM).toInt
     val productType = eat(PRODUIT)
     var productBrand : Option[String] = None
@@ -38,20 +40,17 @@ class Parser(tokenized: Tokenized):
     if curToken == MARQUE then
       productBrand = Some(curValue)
       readToken()
-
-    println(quantity + " " + productType + " " + productBrand)
-    println(curToken)
     
     if curToken == ET then
       readToken()
-      val tmp : Chat.ExprTree = commandHandle()
-      return AndOrder(BasicOrder(Product(quantity, productType, productBrand)), tmp)
+      val tmp : Chat.ExprTree = commandHandle(isReal)
+      return AndOrder(tmp, BasicOrder(Product(quantity, productType, productBrand), isReal), isReal)
     else if curToken == OU then
       readToken()
-      val tmp = commandHandle()
-      return OrOrder(BasicOrder(Product(quantity, productType, productBrand)), tmp)
+      val tmp = commandHandle(isReal)
+      return OrOrder(tmp, BasicOrder(Product(quantity, productType, productBrand), isReal), isReal)
     else if curToken == EOL then
-      return BasicOrder(Product(quantity, productType, productBrand))
+      return BasicOrder(Product(quantity, productType, productBrand), isReal)
     else expected(ET, OU, EOL)
 
   /** the root method of the parser: parses an entry phrase */
@@ -80,7 +79,7 @@ class Parser(tokenized: Tokenized):
         var result : ExprTree = null
         if curToken == COMMANDER then
           readToken()
-          result = commandHandle()
+          result = commandHandle(true)
         else if curToken == CONNAITRE then
           readToken()
           eat(MON)
@@ -92,24 +91,12 @@ class Parser(tokenized: Tokenized):
     else if curToken == COMBIEN then
       readToken()
       eat(COUTER)
-      val quantity : Int = eat(NUM).toInt
-      val productType = eat(PRODUIT)
-      var productBrand : Option[String] = None
-      if curToken == MARQUE then
-        productBrand = Some(curValue)
-        readToken()
-      return AskPrice(Product(quantity, productType, productBrand))
+      commandHandle(false)
     else if curToken == QUEL then
+      readToken()
       eat(ETRE)
       eat(LE)
       eat(PRIX)
       eat(DE)
-      val quantity : Int = eat(NUM).toInt
-      val productType = eat(PRODUIT)
-      var productBrand : Option[String] = None
-      readToken()
-      if curToken == MARQUE then
-        productBrand = Some(curValue)
-        readToken()
-      return AskPrice(Product(quantity, productType, productBrand))
+      commandHandle(false)
     else expected(BONJOUR, JE, COMBIEN, QUEL)

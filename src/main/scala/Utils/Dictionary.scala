@@ -15,6 +15,7 @@ object Dictionary:
     "j" -> "je",
     "suis" -> "etre",
     "appelle" -> "etre",
+    "est" -> "etre",
     "me" -> "me",
     "m" -> "me",
     "veux" -> "vouloir",
