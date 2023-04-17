@@ -76,7 +76,8 @@ class AnalyzerService(productSvc: ProductService,
           case None => "Vous n'êtes pas connecté !"
           case Some(user) => 
             val price = handleOrder(t, session).toString()
-            s"Le prix le plus bas est de CHF $price !"
+            val balance = accountSvc.getAccountBalance(user).toString()
+            s"Le prix le plus bas est de CHF $price et votre nouveau solde est de $balance !"
       case AndOrder(leftCommand, rightCommand) =>
         session.getCurrentUser match
           case None => "Vous n'êtes pas connecté !"

@@ -47,6 +47,7 @@ class Parser(tokenized: Tokenized):
       val tmp : Chat.ExprTree = commandHandle()
       return AndOrder(BasicOrder(Product(quantity, productType, productBrand)), tmp)
     else if curToken == OU then
+      readToken()
       val tmp = commandHandle()
       return OrOrder(BasicOrder(Product(quantity, productType, productBrand)), tmp)
     else if curToken == EOL then
