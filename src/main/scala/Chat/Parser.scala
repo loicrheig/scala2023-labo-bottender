@@ -1,8 +1,6 @@
 package Chat
 
-import org.scalactic.Bool
-
-class UnexpectedTokenException(msg: String) extends Exception(msg){}
+class UnexpectedTokenException(msg: String) extends Exception(msg) {}
 
 class Parser(tokenized: Tokenized):
   import ExprTree._
@@ -17,7 +15,9 @@ class Parser(tokenized: Tokenized):
   /** Reads the next token and assigns it into the global variable curTuple */
   def readToken(): Unit = curTuple = tokenized.nextToken()
 
-  /** "Eats" the expected token and returns it value, or terminates with an error. */
+  /** "Eats" the expected token and returns it value, or terminates with an
+    * error.
+    */
   private def eat(token: Token): String =
     if token == curToken then
       val tmp = curValue
@@ -25,78 +25,85 @@ class Parser(tokenized: Tokenized):
       tmp
     else expected(token)
 
-  /** Complains that what was found was not expected. The method accepts arbitrarily many arguments of type Token */
+  /** Complains that what was found was not expected. The method accepts
+    * arbitrarily many arguments of type Token
+    */
   private def expected(token: Token, more: Token*): Nothing =
     expected(more.prepended(token))
   private def expected(tokens: Seq[Token]): Nothing =
     val expectedTokens = tokens.mkString(" or ")
-    throw new UnexpectedTokenException(s"Expected: $expectedTokens, found: $curToken")
-
-  private def commandHandle(isReal: Boolean) : ExprTree =
-    val quantity : Int = eat(NUM).toInt
-    val productType = eat(PRODUIT)
-    var productBrand : Option[String] = None
-
-    if curToken == MARQUE then
-      productBrand = Some(curValue)
-      readToken()
-    
-    if curToken == ET then
-      readToken()
-      val tmp : Chat.ExprTree = commandHandle(isReal)
-      return AndOrder(tmp, BasicOrder(Product(quantity, productType, productBrand), isReal), isReal)
-    else if curToken == OU then
-      readToken()
-      val tmp = commandHandle(isReal)
-      return OrOrder(tmp, BasicOrder(Product(quantity, productType, productBrand), isReal), isReal)
-    else if curToken == EOL then
-      return BasicOrder(Product(quantity, productType, productBrand), isReal)
-    else expected(ET, OU, EOL)
+    throw new UnexpectedTokenException(
+      s"Expected: $expectedTokens, found: $curToken"
+    )
 
   /** the root method of the parser: parses an entry phrase */
-  // TODO - Part 2 Step 4
-  def parsePhrases() : ExprTree =
+  def parsePhrases(): ExprTree =
     if curToken == BONJOUR then readToken()
-    if curToken == JE then
-      readToken()
-      if curToken == ETRE then
-        readToken()
-        if curToken == ASSOIFFE then
-          readToken()
-          return Thirsty
-        else if curToken == AFFAME then
-          readToken()
-          return Hungry
-        else if curToken == PSEUDO then
-          return Auth(curValue)
-        else expected(ASSOIFFE, AFFAME, PSEUDO)
-      else if curToken == ME then
-        eat(APPELER)
-        eat(PSEUDO)
-        return Auth(curValue)
-      else if curToken == VOULOIR then
-        readToken()
-        var result : ExprTree = null
-        if curToken == COMMANDER then
-          readToken()
-          result = commandHandle(true)
-        else if curToken == CONNAITRE then
-          readToken()
-          eat(MON)
-          eat(SOLDE)
-          result = Solde
-        else expected(COMMANDER, CONNAITRE)
-        result
-      else expected(ETRE, ME, VOULOIR)
-    else if curToken == COMBIEN then
-      readToken()
-      eat(COUTER)
-      commandHandle(false)
-    else if curToken == QUEL then
+
+    if curToken == QUEL then
       readToken()
       eat(ETRE)
       eat(LE)
       eat(PRIX)
       eat(DE)
-      commandHandle(false)
-    else expected(BONJOUR, JE, COMBIEN, QUEL)
+      Price(parseProducts())
+    else if curToken == COMBIEN then
+      readToken()
+      eat(COUTER)
+      Price(parseProducts())
+    else if curToken == JE then
+      readToken()
+
+      if curToken == ETRE then
+        readToken()
+        if curToken == ASSOIFFE then Thirsty
+        else if curToken == AFFAME then Hungry
+        else parseName()
+      else if curToken == VOULOIR then
+        readToken()
+        if curToken == CONNAITRE then
+          readToken()
+          eat(MON)
+          eat(SOLDE)
+          Balance
+        else if curToken == COMMANDER then
+          readToken()
+          Command(parseProducts())
+        else expected(COMMANDER, CONNAITRE)
+      else if curToken == ME then
+        readToken()
+        eat(APPELER)
+        parseName()
+      else expected(ETRE, VOULOIR, ME)
+    else expected(BONJOUR, JE)
+
+    /** Parse a name */
+  def parseName() =
+    val pseudo = eat(PSEUDO).substring(1)
+    Identification(pseudo)
+
+    /** Parse a single product */
+  def parseProduct() =
+    val quantity = eat(NUM).toInt
+    val name = eat(PRODUIT)
+
+    if curToken == MARQUE then
+      val brand = eat(MARQUE)
+      Product(name, Some(brand), quantity)
+    else Product(name, None, quantity)
+
+    /** Parse a potential list of products, separated by ET or OU */
+  def parseProducts(): ExprTree =
+    val product = parseProduct()
+
+    def eval(exprTree: ExprTree): ExprTree =
+      if curToken == ET then
+        readToken()
+        eval(And(exprTree, parseProduct()))
+      else if curToken == OU then
+        readToken()
+        eval(Or(exprTree, parseProduct()))
+      else exprTree
+    end eval
+
+    eval(product)

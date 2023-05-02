@@ -1,9 +1,8 @@
 package Utils
 
-/**
-* Contains the dictionary of the application, which is used to validate, correct and normalize words entered by the
-* user.
-*/
+/** Contains the dictionary of the application, which is used to validate,
+  * correct and normalize words entered by the user.
+  */
 object Dictionary:
   // This dictionary is a Map object that contains valid words as keys and their normalized equivalents as values (e.g.
   // we want to normalize the words "veux" and "aimerais" in one unique term: "vouloir").
@@ -14,10 +13,7 @@ object Dictionary:
     "je" -> "je",
     "j" -> "je",
     "suis" -> "etre",
-    "appelle" -> "etre",
     "est" -> "etre",
-    "me" -> "me",
-    "m" -> "me",
     "veux" -> "vouloir",
     "aimerais" -> "vouloir",
     "voudrais" -> "vouloir",
@@ -33,28 +29,34 @@ object Dictionary:
     "ou" -> "ou",
     "svp" -> "svp",
     "stp" -> "svp",
-    "coûte" -> "couter",
-    "coûtent" -> "couter",
-    "prix" -> "prix",
-    "connaître" -> "connaitre",
-    "appelle" -> "appeler",
-    "combien" -> "combien",
-    "solde" -> "solde",
+    // Part 2
     "quel" -> "quel",
     "le" -> "le",
+    "prix" -> "prix",
     "de" -> "de",
+    "combien" -> "combien",
+    "couter" -> "couter",
+    "coûte" -> "couter",
+    "coûtent" -> "couter",
     "commander" -> "commander",
+    "acheter" -> "commander",
+    "connaitre" -> "connaitre",
+    "connaître" -> "connaitre",
+    "savoir" -> "connaitre",
     "mon" -> "mon",
-    "boxer" -> "boxer",
-    "farmer" -> "farmer",
-    "wittekop" -> "wittekop",
-    "jackhammer" -> "jackhammer",
-    "tenebreuse" -> "tenebreuse",
-    "punkipa" -> "punkipa",
+    "solde" -> "solde",
+    "me" -> "me",
+    "m" -> "me",
+    "appeler" -> "appeler",
+    "appelle" -> "appeler",
     "maison" -> "maison",
     "cailler" -> "cailler",
-
-
-    // TODO - Part 2 Step 1
+    "farmer" -> "farmer",
+    "boxer" -> "boxer",
+    "wittekop" -> "wittekop",
+    "punkipa" -> "punkipa",
+    "jackhammer" -> "jackhammer",
+    "ténébreuse" -> "tenebreuse",
+    "tenebreuse" -> "tenebreuse"
   )
 end Dictionary
