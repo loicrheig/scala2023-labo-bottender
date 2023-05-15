@@ -4,6 +4,8 @@ import Chat.{AnalyzerService, TokenizerService}
 import Data.{MessageService, AccountService, SessionService, Session}
 import scalatags.Text.all._
 import scalatags.Text.tags2
+import Layouts.basicPage
+import Layouts.messageList
 
 /** Assembles the routes dealing with the message board:
   *   - One route to display the home page
@@ -25,74 +27,13 @@ class MessagesRoutes(
   @getSession(
     sessionSvc
   ) // This decorator fills the `(session: Session)` part of the `index` method.
+
   @cask.get("/")
   def index()(session: Session) =
     // TODO - Part 3 Step 2: Display the home page (with the message board and the form to send new messages)
-    html(
-      head(
-        link(
-          rel := "stylesheet",
-          href := "/css/main.css"
-        ),
-        script(src := "/js/main.js")
-      ),
-      body(
-        tag("nav")(
-          a(href := "/")(
-            cls := "nav-brand",
-            p("Bot-tender")
-          ),
-          
-          div(
-            cls := "nav-item",
-            a(href := "/users")(
-              p("Log in")
-            )
-          ),
-        ),
-        div(cls := "content")(
-          div(id := "boardMessage")(
-            div(cls := "msg")(
-              css("text-align") := "center",
-              css("vertical-align") := "middle",
-              css("padding") := "40px",
-              span(
-                cls := "author"
-              ),
-              span(cls := "msg-content")(
-                span(
-                  cls := "mention"
-                ),
-                "Please wait, the messages are loading."
-              )
-            )
-          ),
-          form(
-            id := "msgForm",
-            onsubmit := "submitMessageForm(); return false;",
-            div(
-              id := "errorDiv",
-              cls := "errorMsg"
-            ),
-            label(
-              `for` := "messageInput",
-              "Your message:"
-            ),
-            input(
-              id := "messageInput",
-              `type` := "text",
-              placeholder := "Type your message here"
-            ),
-            input(
-              `type` := "submit",
-            )
-          )
-        ),
-        ),
-      )
-    /*session.getCurrentUser
-      .map(u => s"You are logged in as ${u} !")
-      .getOrElse("You are not logged in !")*/
+    basicPage(
+      messageList(),
+    )
 
   // TODO - Part 3 Step 4b: Process the new messages sent as JSON object to `/send`. The JSON looks
   //      like this: `{ "msg" : "The content of the message" }`.
