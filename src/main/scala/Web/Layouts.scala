@@ -50,57 +50,6 @@ object Layouts:
     )
   }
 
-  val messageList = () => {
-    div(cls := "content")(
-      div(id := "boardMessage")(
-        div(cls := "msg")(
-          css("text-align") := "center",
-          css("vertical-align") := "middle",
-          css("padding") := "40px",
-          span(
-            cls := "author"
-          ),
-          span(cls := "msg-content")(
-            span(
-              cls := "mention"
-            ),
-            "Please wait, the messages are loading."
-          )
-        )
-      ),
-      form(
-        id := "msgForm",
-        onsubmit := "submitMessageForm(); return false;",
-        div(
-          id := "errorDiv",
-          cls := "errorMsg"
-        ),
-        label(
-          `for` := "messageInput",
-          "Your message:"
-        ),
-        input(
-          id := "messageInput",
-          `type` := "text",
-          placeholder := "Type your message here"
-        ),
-        input(
-          `type` := "submit",
-        )
-      )
-    )
-  }
-
-  val basicPage = (content : TypedTag[String]) => {
-    html(
-      heading(),
-      body(
-        header(),
-        content,
-      )
-    )
-  }
-
   val basicForm = (leftText : String, placeHolder : String, textId : String, actionS : String, methodS : String, title : String) => {
     div(
       h1(title),
@@ -124,6 +73,58 @@ object Layouts:
     )
   }
 
+  val messageList = () => {
+    div(cls := "content")(
+      div(id := "boardMessage")(
+        div(cls := "msg")(
+          css("text-align") := "center",
+          css("vertical-align") := "middle",
+          css("padding") := "40px",
+          span(
+            cls := "author"
+          ),
+          span(cls := "msg-content")(
+            span(
+              cls := "mention"
+            ),
+            "Please wait, the messages are loading."
+          )
+        )
+      ),
+      //basicForm("message: ", "Type your message here", "messageInput", "/send", "post", "Message"),
+      form(
+        id := "msgForm",
+        onsubmit := "submitMessageForm(); return false;",
+        div(
+          id := "errorDiv",
+          cls := "errorMsg"
+        ),
+        /*label(
+          `for` := "messageInput",
+          "Your message:"
+        ),*/
+        input(
+          id := "messageInput",
+          `type` := "text",
+          placeholder := "Type your message here"
+        ),
+        input(
+          `type` := "submit",
+        )
+      )
+    )
+  }
+
+  val basicPage = (content : TypedTag[String]) => {
+    html(
+      heading(),
+      body(
+        header(),
+        content,
+      )
+    )
+  }
+
   val loginForm = (errormsg : Option[String]) => {
     div(
       div(cls := "errorMsg")(errormsg.getOrElse("")),
@@ -131,5 +132,17 @@ object Layouts:
       basicForm("Username: ", "Type your username here", "usernameInput", "/register", "post", "register")
     )
   }
+
+  def message(author: String, content: Frag): Frag =
+    div(cls := "msg")(
+      tag("span")(cls := "author")(author),
+      content
+    )
+
+  def messageContent(message: String, mention: Option[String]): Frag =
+    tag("span")(cls := "msg-content")(
+      span(cls := "mention")(mention),
+      message
+    )
 
 end Layouts

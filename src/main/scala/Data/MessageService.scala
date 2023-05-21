@@ -9,6 +9,7 @@ object MessageService:
   type MsgContent = Frag
 
 trait MessageService:
+
   /** Retrieve the latest N added messages
     * @param n
     *   The number of message to retrieve
@@ -47,8 +48,21 @@ trait MessageService:
   def deleteHistory(): Unit
 
 class MessageImpl extends MessageService:
+  var idCounter = 0L
+
   // TODO - Part 3 Step 4a: Store the messages and the corresponding user in memory.
   //       Implement methods to add new messages, to get the last 20 messages and to delete all existing messages.
+
+  case class Message(
+      id: Long,
+      sender: Username,
+      msg: MsgContent,
+      mention: Option[Username] = None,
+      exprType: Option[ExprTree] = None,
+      replyToId: Option[Long] = None
+  )
+
+  var messages : List[Message] = List()
 
   override def add(
       sender: Username,
@@ -57,10 +71,21 @@ class MessageImpl extends MessageService:
       exprType: Option[ExprTree] = None,
       replyToId: Option[Long] = None
   ): Long =
-    ???
+    messages = messages :+ Message(
+      id = idCounter,
+      sender = sender,
+      msg = msg,
+      mention = mention,
+      exprType = exprType,
+      replyToId = replyToId
+    )
+    idCounter += 1
+    idCounter - 1
 
   override def getLatestMessages(n: Int) =
-    ???
+    messages
+      .takeRight(n)
+      .map(m => (m.sender, m.msg))
 
   override def deleteHistory(): Unit =
-    ???
+    messages = List()
