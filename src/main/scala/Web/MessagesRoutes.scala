@@ -8,9 +8,15 @@ import Layouts.basicPage
 import Layouts.messageList
 import Layouts.message
 import Chat.Parser
+import Chat.ExprTree.*
+import Chat.ExprTree
 import castor.Context.Simple.global
 import scala.collection.mutable.ListBuffer
 import Chat.UnexpectedTokenException
+import Utils.FutureOps.randomSchedule
+import scala.concurrent.duration.*
+import scala.concurrent.Future
+
 
 
 /** Assembles the routes dealing with the message board:
@@ -56,6 +62,40 @@ class MessagesRoutes(
   //
   //      If no error occurred, every other user is notified with the last 20 messages
   //
+
+  def getProductsFromExpr(expr: ExprTree) : List[Product] = expr match {
+    case And(left, right) => getProductsFromExpr(left) ++ getProductsFromExpr(right)
+    case Or(left, right) => getProductsFromExpr(left) ++ getProductsFromExpr(right)
+    case Product(name, brand, quantity) => List(Product(name, brand, quantity))
+    case _ => List()
+  }
+
+  def synchCommands(session: Session, product: Product) : Future[(Int, String)] = {    
+    product.quantity match 
+        case 0 => Future.successful(0, "")
+        case 1 =>
+          val wait = randomSchedule(3.second, 0.second, 1.0)
+          wait.flatMap(_ => {
+            // Recreate a command with only one product
+            val newCommand = Command(Product(product.name, product.brand, 1))
+            val id = msgSvc.add("bot", Layouts.messageContent(analyzerSvc.reply(session)(newCommand), None), session.getCurrentUser, Some(newCommand))
+            val botMessage = analyzerSvc.reply(session)(newCommand)
+            msgSvc.add("bot", Layouts.messageContent(botMessage, None), session.getCurrentUser, Some(newCommand))
+            Future.successful(1, product.name + " " + product.brand)
+          })
+        case _ =>
+          val wait = randomSchedule(3.second, 0.second, 1.0)
+          wait.flatMap(_ => {
+            // Recreate a command with only one product
+            val newCommand = Command(Product(product.name, product.brand, 1))
+            val id = msgSvc.add("bot", Layouts.messageContent(analyzerSvc.reply(session)(newCommand), None), session.getCurrentUser, Some(newCommand))
+            val botMessage = analyzerSvc.reply(session)(newCommand)
+            msgSvc.add("bot", Layouts.messageContent(botMessage, None), session.getCurrentUser, Some(newCommand))
+            val fut = synchCommands(session, Product(product.name, product.brand, product.quantity - 1))
+            fut.flatMap(x => Future.successful(x._1 + 1, product.name + " " + product.brand))
+          })
+  }
+
   @getSession(sessionSvc)
   @cask.postJson("/send")
   def send(msg: String)(session: Session) : ujson.Obj =
@@ -65,7 +105,7 @@ class MessagesRoutes(
     if msg.isEmpty then
         ujson.Obj("success" -> false, "err" -> "The message is empty")
     else if session.getCurrentUser.isEmpty then
-        ujson.Obj("success" -> false, "err" -> "No user is logged in")
+        ujson.Obj("success" -> false, "err" -> "No user is logged in bro")
     else
         val user = session.getCurrentUser.get
         val mention = if msg.charAt(0) == '@' then Some(msg.substring(1, msg.indexOf(' '))) else None
@@ -79,9 +119,42 @@ class MessagesRoutes(
           try {
             val tokenized = tokenizerSvc.tokenize(msg.substring(msg.indexOf(" ")))
             val expr = new Parser(tokenized).parsePhrases()
-            val id = msgSvc.add(user, Layouts.messageContent(msgReformat, mention), Some(user), Some(expr))
-            val botMessage = analyzerSvc.reply(session)(expr)
-            msgSvc.add("bot", Layouts.messageContent(botMessage, None), session.getCurrentUser, None, Some(id))
+
+            // Check if expr is a Command
+            expr match {
+              case Command(subExpr) => {
+                val products = getProductsFromExpr(subExpr)
+                var msg = "La commande de "
+
+                val futurList = products.map(product => {
+                  synchCommands(session, product)
+                })
+
+                // Check that all futurs are finished
+                val futur = Future.sequence(futurList)
+                futur.map(x => {
+                  x.foreach(y => {
+                    msg = msg + s"${y._1} ${y._2} "
+                  })
+                })
+
+                msg += "a été effectuée"
+
+                msgSvc.add("bot", Layouts.messageContent(msg, None), session.getCurrentUser, Some(expr))
+                val messages = msgSvc.getLatestMessages(20)
+                val latests = messagesToString(messages)
+                webSockets.foreach(_.send(cask.Ws.Text(latests)))
+
+              }
+              case _ => {
+                val id = msgSvc.add(user, Layouts.messageContent(msgReformat, mention), Some(user), Some(expr))
+                val botMessage = analyzerSvc.reply(session)(expr)
+                msgSvc.add("bot", Layouts.messageContent(botMessage, None), session.getCurrentUser, None, Some(id))
+                val messages = msgSvc.getLatestMessages(20)
+                val latests = messagesToString(messages)
+                webSockets.foreach(_.send(cask.Ws.Text(latests)))
+              }
+            }
           }
           catch {
             case e: UnexpectedTokenException => return ujson.Obj("success" -> false, "err" -> e.getMessage)
@@ -89,10 +162,6 @@ class MessagesRoutes(
         else
           msgSvc.add(user, Layouts.messageContent(msgReformat, mention), mention, None)
         end if
-        // Notify all users
-        val messages = msgSvc.getLatestMessages(20)
-        val latests = messagesToString(messages)
-        webSockets.foreach(_.send(cask.Ws.Text(latests)))
 
         // Add message to the message service
         ujson.Obj("success" -> true, "err" -> "")

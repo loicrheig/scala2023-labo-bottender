@@ -91,7 +91,6 @@ object Layouts:
           )
         )
       ),
-      //basicForm("message: ", "Type your message here", "messageInput", "/send", "post", "Message"),
       form(
         id := "msgForm",
         onsubmit := "submitMessageForm(); return false;",
