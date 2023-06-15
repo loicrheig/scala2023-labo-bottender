@@ -158,7 +158,7 @@ class MessagesRoutes(
                     var amount = 0.0
 
                     for (product <- ls.get) {
-                      productsString += product._1.quantity + " " + product._1.name + " " + product._1.brand + " "
+                      productsString += product._1.quantity + " " + product._1.name + " " + product._1.brand.getOrElse("") + " "
                       // Calculate the price of the products
                       var brandName = product._1.brand.getOrElse(productSvc.getDefaultBrand(product._1.name))
                       amount += productSvc.getPrice(product._1.name, brandName) * product._1.quantity
