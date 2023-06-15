@@ -16,6 +16,7 @@ import Chat.UnexpectedTokenException
 import Utils.FutureOps.randomSchedule
 import scala.concurrent.duration.*
 import scala.concurrent.Future
+import org.scalactic.Bool
 
 
 
@@ -70,30 +71,19 @@ class MessagesRoutes(
     case _ => List()
   }
 
-  def synchCommands(session: Session, product: Product) : Future[(Int, String)] = {    
-    product.quantity match 
-        case 0 => Future.successful(0, "")
-        case 1 =>
-          val wait = randomSchedule(3.second, 0.second, 1.0)
-          wait.flatMap(_ => {
-            // Recreate a command with only one product
-            val newCommand = Command(Product(product.name, product.brand, 1))
-            val id = msgSvc.add("bot", Layouts.messageContent(analyzerSvc.reply(session)(newCommand), None), session.getCurrentUser, Some(newCommand))
-            val botMessage = analyzerSvc.reply(session)(newCommand)
-            msgSvc.add("bot", Layouts.messageContent(botMessage, None), session.getCurrentUser, Some(newCommand))
-            Future.successful(1, product.name + " " + product.brand)
-          })
-        case _ =>
-          val wait = randomSchedule(3.second, 0.second, 1.0)
-          wait.flatMap(_ => {
-            // Recreate a command with only one product
-            val newCommand = Command(Product(product.name, product.brand, 1))
-            val id = msgSvc.add("bot", Layouts.messageContent(analyzerSvc.reply(session)(newCommand), None), session.getCurrentUser, Some(newCommand))
-            val botMessage = analyzerSvc.reply(session)(newCommand)
-            msgSvc.add("bot", Layouts.messageContent(botMessage, None), session.getCurrentUser, Some(newCommand))
-            val fut = synchCommands(session, Product(product.name, product.brand, product.quantity - 1))
-            fut.flatMap(x => Future.successful(x._1 + 1, product.name + " " + product.brand))
-          })
+  def synchCommands(session: Session, product: Product) : Future[(Int, String, Boolean)] = {    
+    def loop(session: Session, productName: String, productQuantityLeft: Int, acc: Int, notFailed: Boolean) : Future[(Int, String, Boolean)] = {
+      if (productQuantityLeft == 0) {
+        Future.successful((acc, product.name, notFailed))
+      } else {
+        val wait = randomSchedule(3.second, 0.second, 0.4)
+        wait.flatMap(_ => {
+          loop(session, product.name, productQuantityLeft - 1, acc + 1, notFailed)
+        }).recoverWith( { case e: Exception => loop(session, product.name, productQuantityLeft - 1, acc, false) })
+      }
+    }
+
+    loop(session, product.name, product.quantity, 0, true)
   }
 
   @getSession(sessionSvc)
@@ -124,26 +114,48 @@ class MessagesRoutes(
             expr match {
               case Command(subExpr) => {
                 val products = getProductsFromExpr(subExpr)
-                var msg = "La commande de "
+                var msg = "Votre commande est en cours de préparation. Elle contient : "
+
+                var productsString = ""
+
+                for (product <- products) {
+                  if product.brand == None then
+                    productsString += product.quantity + " " + product.name + " "
+                  else
+                    productsString += product.quantity + " " + product.name + " " + product.brand + " "
+                }
+
+                msgSvc.add("bot", Layouts.messageContent(msg + productsString, None), session.getCurrentUser, Some(expr))
+                val messages = msgSvc.getLatestMessages(20)
+                val latests = messagesToString(messages)
+                webSockets.foreach(_.send(cask.Ws.Text(latests)))
 
                 val futurList = products.map(product => {
                   synchCommands(session, product)
                 })
 
-                // Check that all futurs are finished
-                val futur = Future.sequence(futurList)
-                futur.map(x => {
-                  x.foreach(y => {
-                    msg = msg + s"${y._1} ${y._2} "
-                  })
+                // When all the futurs are done, we send a message to the user showing the result
+                Future.sequence(futurList).onComplete(ls => {
+
+                  var msg = ""
+
+                  // Check if one of the commands failed
+                  if ls.get.exists(_._3 == false) then
+                    msg = "Votre commande a partiellement réussie. Elle contient : "
+                  else
+                    msg = "Votre commande est prête. Elle contient : "
+
+                  var productsString = ""
+
+                  for (product <- ls.get) {
+                    productsString += product._1 + " " + product._2 + " "
+                  }
+
+                  msgSvc.add("bot", Layouts.messageContent(msg + productsString, None), session.getCurrentUser, Some(expr))
+                  val messages = msgSvc.getLatestMessages(20)
+                  val latests = messagesToString(messages)
+                  webSockets.foreach(_.send(cask.Ws.Text(latests)))
                 })
-
-                msg += "a été effectuée"
-
-                msgSvc.add("bot", Layouts.messageContent(msg, None), session.getCurrentUser, Some(expr))
-                val messages = msgSvc.getLatestMessages(20)
-                val latests = messagesToString(messages)
-                webSockets.foreach(_.send(cask.Ws.Text(latests)))
 
               }
               case _ => {
