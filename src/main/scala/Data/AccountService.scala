@@ -1,6 +1,7 @@
 package Data
 
 import scala.collection.mutable
+import scala.collection.concurrent.TrieMap
 
 trait AccountService:
   /** Retrieve the balance of a given account
@@ -46,7 +47,7 @@ trait AccountService:
   def purchase(user: String, amount: Double): Double
 
 class AccountImpl extends AccountService:
-  private val accounts = mutable.Map[String, Double]()
+  private val accounts = TrieMap[String, Double]()
 
   def getAccountBalance(user: String): Double =
     accounts(user)
@@ -57,10 +58,12 @@ class AccountImpl extends AccountService:
   def isAccountExisting(user: String): Boolean =
     accounts.contains(user)
   def purchase(user: String, amount: Double): Double =
+    // update with a transaction
+    
     val balance = accounts(user)
     if balance >= amount then
       val newBalance = balance - amount
-      accounts(user) = newBalance
+      accounts.updateWith(user)(_ => Some(newBalance))
       newBalance
     else throw new Exception("Not enough money")
 end AccountImpl

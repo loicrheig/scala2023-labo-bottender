@@ -1,7 +1,7 @@
 package Web
 
 import Chat.{AnalyzerService, TokenizerService}
-import Data.{MessageService, AccountService, SessionService, Session}
+import Data.{MessageService, AccountService, SessionService, ProductImpl, Session}
 import scalatags.Text.all._
 import scalatags.Text.tags2
 import Layouts.basicPage
@@ -32,7 +32,8 @@ class MessagesRoutes(
     analyzerSvc: AnalyzerService,
     msgSvc: MessageService,
     accountSvc: AccountService,
-    sessionSvc: SessionService
+    sessionSvc: SessionService,
+    productSvc: ProductImpl,
 )(implicit val log: cask.Logger)
     extends cask.Routes:
   import Decorators.getSession
@@ -71,19 +72,19 @@ class MessagesRoutes(
     case _ => List()
   }
 
-  def synchCommands(session: Session, product: Product) : Future[(Int, String, Boolean)] = {    
-    def loop(session: Session, productName: String, productQuantityLeft: Int, acc: Int, notFailed: Boolean) : Future[(Int, String, Boolean)] = {
+  def synchCommands(session: Session, product: Product) : Future[(Product, Int)] = {    
+    def loop(session: Session, productName: String, productBrand: Option[String], productQuantityLeft: Int, acc: Int, productQuantity: Int) : Future[(Product, Int)] = {
       if (productQuantityLeft == 0) {
-        Future.successful((acc, product.name, notFailed))
+        Future.successful((Product(productName, productBrand, acc), productQuantity))
       } else {
-        val wait = randomSchedule(3.second, 0.second, 0.4)
+        val wait = randomSchedule(3.second, 0.second, 0.8)
         wait.flatMap(_ => {
-          loop(session, product.name, productQuantityLeft - 1, acc + 1, notFailed)
-        }).recoverWith( { case e: Exception => loop(session, product.name, productQuantityLeft - 1, acc, false) })
+          loop(session, productName, productBrand, productQuantityLeft - 1, acc + 1, productQuantity)
+        }).recoverWith( { case e: Exception => loop(session, productName, productBrand, productQuantityLeft - 1, acc, productQuantity) })
       }
     }
 
-    loop(session, product.name, product.quantity, 0, true)
+    loop(session, product.name, product.brand, product.quantity, 0, product.quantity)
   }
 
   @getSession(sessionSvc)
@@ -126,6 +127,7 @@ class MessagesRoutes(
                 }
 
                 msgSvc.add("bot", Layouts.messageContent(msg + productsString, None), session.getCurrentUser, Some(expr))
+
                 val messages = msgSvc.getLatestMessages(20)
                 val latests = messagesToString(messages)
                 webSockets.foreach(_.send(cask.Ws.Text(latests)))
@@ -136,22 +138,39 @@ class MessagesRoutes(
 
                 // When all the futurs are done, we send a message to the user showing the result
                 Future.sequence(futurList).onComplete(ls => {
-
                   var msg = ""
 
-                  // Check if one of the commands failed
-                  if ls.get.exists(_._3 == false) then
-                    msg = "Votre commande a partiellement réussie. Elle contient : "
+                  // list of prodoct quantity ordered
+                  val quantities = ls.get.map(product => (product._1.quantity))
+                  val quantitiesLeft = ls.get.map(product => (product._2 - product._1.quantity))
+
+                  // Check that quantities are full of 0
+                  if quantities.reduce(_ + _) == 0 then
+                    msg = "Votre commande a échoué. "
                   else
-                    msg = "Votre commande est prête. Elle contient : "
+                    if quantitiesLeft.reduce(_ + _) != 0 then
+                    msg = "Votre commande a partiellement réussie. Elle contient : "
+                    else
+                      msg = "Votre commande a réussie. Elle contient : "
 
-                  var productsString = ""
+                    var productsString = ""
 
-                  for (product <- ls.get) {
-                    productsString += product._1 + " " + product._2 + " "
-                  }
+                    var amount = 0.0
 
-                  msgSvc.add("bot", Layouts.messageContent(msg + productsString, None), session.getCurrentUser, Some(expr))
+                    for (product <- ls.get) {
+                      productsString += product._1.quantity + " " + product._1.name + " " + product._1.brand + " "
+                      // Calculate the price of the products
+                      var brandName = product._1.brand.getOrElse(productSvc.getDefaultBrand(product._1.name))
+                      amount += productSvc.getPrice(product._1.name, brandName) * product._1.quantity
+                    }
+
+                    // Remove the price of the products from the user's account
+                    val user = session.getCurrentUser.get
+                    accountSvc.purchase(user, amount)
+
+                    msg += productsString
+
+                  msgSvc.add("bot", Layouts.messageContent(msg, None), session.getCurrentUser, Some(expr))
                   val messages = msgSvc.getLatestMessages(20)
                   val latests = messagesToString(messages)
                   webSockets.foreach(_.send(cask.Ws.Text(latests)))
